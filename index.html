@@ -1,0 +1,137 @@
+:
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>五子连珠</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style type="text/css">
+        html,
+        body {
+            margin: 0 auto;
+            width: 100%;
+            background: #e7e7e7;
+        }
+
+        .container {
+            width: 800px;
+            height: 600px;
+            margin: 50px auto;
+            background: #e2f3f7;
+        }
+
+        .canvas {
+            margin-top: 32px;
+            margin-left: 130px;
+        }
+    </style>
+    <script type="text/javascript">
+        // var c;//canvas
+        const w = 60;// width and height of cell
+        const gridW = 540;//width and height of grid
+        var balls = [];
+        var levels = { easy: 4, normal: 5, difficult: 6 };//0:easy,1:normal,2:difficult
+        var level = levels.easy;
+        var selectedBall;
+        window.onload = function () {
+            var ctx = fnInitCanvas();
+            fnDrawGrid(ctx);
+            fnDrawBalls(ctx);
+        }
+        //initialize canvas
+        var fnInitCanvas = function () {
+            var c = document.getElementById("canvas");
+            var ctx = c.getContext("2d");
+            c.onmousedown = function (e) {
+                fnClickCanvas(e.offsetX, e.offsetY, ctx);
+            };
+            return ctx;
+        }
+        var fnDrawGrid = function (ctx) {
+            ctx.strokeStyle = "#0b2931"
+            ctx.lineWidth = 1;
+            let end = 0;
+            //x axis 
+            for (let i = 0; i < 10; i++) {
+                end = i == 0 ? 1 : i * w;
+                ctx.moveTo(0, end);
+                ctx.lineTo(gridW, end);
+            }
+            //y axis
+            for (let i = 0; i < 10; i++) {
+                end = i == 0 ? 1 : i * w;
+                ctx.moveTo(end, 0);
+                ctx.lineTo(end, gridW);
+            }
+            ctx.stroke();
+        }
+        //click canvas
+        var fnClickCanvas = function (x, y, ctx) {
+            let i = parseInt(x / w);
+            let j = parseInt(y / w);
+            if (balls[i] && balls[i][j]) {
+                selectedBall = { x: i, y: j, img: balls[i][j] };
+            }
+            else {
+                if (selectedBall)
+                    fnMoveBall(x, y, ctx);
+            }
+        }
+        //move to the position where mouse clicked.
+        var fnMoveBall = function (x, y, ctx) {
+            let startX = selectedBall.x * w;
+            let startY = selectedBall.y * w;
+            ctx.clearRect(startX + 1, startY + 1, w - 2, w - 2);
+            fnDrawBall(ctx, x, y, selectedBall.img);
+            balls[selectedBall.x][selectedBall.y] = null;
+            selectedBall = null;
+        }
+        //random drawing three balls.
+        var fnDrawBalls = function (ctx) {
+            let x, y, b;
+            for (let i = 0; i < 3; i++) {
+                x = parseInt(9 * Math.random());
+                y = parseInt(9 * Math.random());
+                b = imgs[parseInt(6 * Math.random())];
+                if (!balls[x])
+                    balls[x] = [];
+                balls[x][y] = b;
+                ctx.drawImage(b, x * w + 5, y * w + 5);
+            }
+        }
+        var fnDrawBall = function (ctx, x, y, img) {
+            let i = Math.floor(x / w);
+            let j = Math.floor(y / w);
+            if (!balls[i])
+                balls[i] = [];
+            balls[i][j] = img;
+            ctx.drawImage(img, i * w + 5, j * w + 5);
+        }
+        var fnGetImage = function (color) {
+            var image = document.createElement("img");
+            image.width = 50;
+            image.height = 50;
+            image.src = "images/" + color + ".png";
+            return image;
+        }
+        var imgs = {
+            0: fnGetImage("red"),
+            1: fnGetImage("orange"),
+            2: fnGetImage("green"),
+            3: fnGetImage("blue"),
+            4: fnGetImage("cyan"),
+            5: fnGetImage("purple")
+        };
+
+    </script>
+</head>
+
+<body>
+    <div class="container">
+        <canvas id="canvas" class="canvas" width="542" height="542"></canvas>
+    </div>
+</body>
+
+</html>
