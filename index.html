@@ -7,6 +7,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <title>五子连珠</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script src="a.js" type="text/javascript"></script>
     <style type="text/css">
         html,
         body {
@@ -16,15 +17,29 @@
         }
 
         .container {
-            width: 800px;
-            height: 600px;
+            width: 1000px;
+            height: 700px;
             margin: 50px auto;
             background: #e2f3f7;
         }
 
-        .canvas {
-            margin-top: 32px;
-            margin-left: 130px;
+        .canvasBox {
+            width: 542px;
+            margin: 0 auto;
+        }
+
+        .nextBalls {
+            width: 266px;
+            height: 62px;
+            margin: 0px auto;
+        }
+
+        .nextBalls .cell {
+            width: 60px;
+            float: left;
+            height: 60px;
+            margin: 10px;
+            border: 1px solid #333;
         }
     </style>
     <script type="text/javascript">
@@ -33,12 +48,15 @@
         const gridW = 540;//width and height of grid
         var balls = [];
         var levels = { easy: 4, normal: 5, difficult: 6 };//0:easy,1:normal,2:difficult
-        var level = levels.easy;
+        var level = levels.normal;
         var selectedBall;
+        var nextBalls = [];
         window.onload = function () {
             var ctx = fnInitCanvas();
             fnDrawGrid(ctx);
+            fnGetNextBalls();
             fnDrawBalls(ctx);
+            fnGetNextBalls();
         }
         //initialize canvas
         var fnInitCanvas = function () {
@@ -75,18 +93,44 @@
                 selectedBall = { x: i, y: j, img: balls[i][j] };
             }
             else {
-                if (selectedBall)
+                if (selectedBall) {
                     fnMoveBall(x, y, ctx);
+                    fnGetNextBalls();
+                }
             }
         }
-        //move to the position where mouse clicked.
+        //validate if the selected ball can be move to target cell.m,n: index of selected ball,index of target cell '
+        var fnValidatePath = function (a, b, m, n) {
+            console.log(AStar);
+            AStar.fnSetStartPoint(a, b);
+            AStar.fnSetEndPoint(m, b);
+            return AStar.FindPoint();
+        }
+        //move to the position where mouse clicked. x,y:mouse position
         var fnMoveBall = function (x, y, ctx) {
+            let i = Math.floor(x / w);
+            let j = Math.floor(y / w);
+            if (!fnValidatePath(selectedBall.x, selectedBall.y, i, j)) {
+                console.log("没有路");
+                return;
+            }
             let startX = selectedBall.x * w;
             let startY = selectedBall.y * w;
             ctx.clearRect(startX + 1, startY + 1, w - 2, w - 2);
-            fnDrawBall(ctx, x, y, selectedBall.img);
+
+            fnDrawBall(ctx, i, j, selectedBall.img);
             balls[selectedBall.x][selectedBall.y] = null;
             selectedBall = null;
+            fnDrawBalls(ctx);
+        }
+        // get the next three balls.
+        var fnGetNextBalls = function () {
+            nextBalls = [imgs[parseInt(level * Math.random())], imgs[parseInt(level * Math.random())], imgs[parseInt(level * Math.random())]];
+            var cells = document.getElementsByClassName("cell");
+            let offset = 0;
+            cells[offset].innerHTML = nextBalls[offset++].outerHTML;
+            cells[offset].innerHTML = nextBalls[offset++].outerHTML;
+            cells[offset].innerHTML = nextBalls[offset++].outerHTML;
         }
         //random drawing three balls.
         var fnDrawBalls = function (ctx) {
@@ -94,20 +138,22 @@
             for (let i = 0; i < 3; i++) {
                 x = parseInt(9 * Math.random());
                 y = parseInt(9 * Math.random());
-                b = imgs[parseInt(6 * Math.random())];
-                if (!balls[x])
-                    balls[x] = [];
-                balls[x][y] = b;
-                ctx.drawImage(b, x * w + 5, y * w + 5);
+                b = nextBalls[i];
+                fnDrawBall(ctx, x, y, b);
             }
         }
-        var fnDrawBall = function (ctx, x, y, img) {
-            let i = Math.floor(x / w);
-            let j = Math.floor(y / w);
+        var fnDrawBall = function (ctx, i, j, img) {
             if (!balls[i])
                 balls[i] = [];
-            balls[i][j] = img;
-            ctx.drawImage(img, i * w + 5, j * w + 5);
+            if (!balls[i][j]) {
+                balls[i][j] = img;
+                ctx.drawImage(img, i * w + 5, j * w + 5);
+            }
+            else { //if the cell has a ball already,random drawing to  new position
+                i = parseInt(9 * Math.random());
+                j = parseInt(9 * Math.random());
+                fnDrawBall(ctx, i, j, img);
+            }
         }
         var fnGetImage = function (color) {
             var image = document.createElement("img");
@@ -130,7 +176,15 @@
 
 <body>
     <div class="container">
-        <canvas id="canvas" class="canvas" width="542" height="542"></canvas>
+        <div class="nextBalls">
+            <div class="cell"></div>
+            <div class="cell"></div>
+            <div class="cell"></div>
+        </div>
+        <div class="canvasBox">
+            <canvas id="canvas" class="canvas" width="542" height="542"></canvas>
+        </div>
+
     </div>
 </body>
 
